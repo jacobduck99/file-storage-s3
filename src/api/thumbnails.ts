@@ -51,16 +51,21 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     const file = formData.get('thumbnail');
 
    if (!(file instanceof File)) {
-      throw new BadRequest("Invalid video");
+      throw new BadRequestError("Invalid video");
     }
 
     const MAX_UPLOAD_SIZE = 10 << 20;
 
-    if (file > MAX_UPLOAD_SIZE){
-        throw new BadRequest("File size too big");
+    if (file.size > MAX_UPLOAD_SIZE){
+        throw new BadRequestError("File size too big");
     }
 
     const type = file.type;
+    console.log("file size", file.size);
+    const buffer = await file.arrayBuffer();
+    console.log("buffer", buffer);
+
+
 
     return respondWithJSON(200, null);
 }
