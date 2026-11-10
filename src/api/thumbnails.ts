@@ -37,17 +37,30 @@ export async function handlerGetThumbnail(cfg: ApiConfig, req: BunRequest) {
 }
 
 export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
-  const { videoId } = req.params as { videoId?: string };
-  if (!videoId) {
+    const { videoId } = req.params as { videoId?: string };
+    if (!videoId) {
     throw new BadRequestError("Invalid video ID");
-  }
+    }
 
-  const token = getBearerToken(req.headers);
-  const userID = validateJWT(token, cfg.jwtSecret);
+    const token = getBearerToken(req.headers);
+    const userID = validateJWT(token, cfg.jwtSecret);
 
-  console.log("uploading thumbnail for video", videoId, "by user", userID);
+    console.log("uploading thumbnail for video", videoId, "by user", userID);
 
-  // TODO: implement the upload here
+    const formData = await req.formData();
+    const file = formData.get('thumbnail');
 
-  return respondWithJSON(200, null);
+    if (!file instanceof file){
+        throw new BadRequest("Invalid video");
+    }
+
+    const MAX_UPLOAD_SIZE = 10 << 20;
+
+    if (file > MAX_UPLOAD_SIZE){
+        throw new BadRequest("File size too big");
+    }
+
+    const type = file.type;
+
+    return respondWithJSON(200, null);
 }
