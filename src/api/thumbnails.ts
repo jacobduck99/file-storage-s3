@@ -50,8 +50,8 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     const formData = await req.formData();
     const file = formData.get('thumbnail');
 
-    if (!file instanceof file){
-        throw new BadRequest("Invalid video");
+   if (!(file instanceof File)) {
+      throw new BadRequest("Invalid video");
     }
 
     const MAX_UPLOAD_SIZE = 10 << 20;
