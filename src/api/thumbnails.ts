@@ -11,7 +11,7 @@ type Thumbnail = {
   mediaType: string;
 };
 
-const videoThumbnails: Map<string, Thumbnail> = new Map();
+// const videoThumbnails: Map<string, Thumbnail> = new Map();
 
 export async function handlerGetThumbnail(cfg: ApiConfig, req: BunRequest) {
   const { videoId } = req.params as { videoId?: string };
@@ -78,7 +78,7 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
 
     videoThumbnails.set(videoId, { data, mediaType });
 
-    video.thumbnailURL = `http://localhost:${cfg.port}/api/thumbnails/${videoId}`;
+    video.thumbnailURL = dataURL;
     updateVideo(cfg.db, video);
 
     return respondWithJSON(200, video);
