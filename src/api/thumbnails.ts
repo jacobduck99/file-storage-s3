@@ -1,6 +1,6 @@
 import { getBearerToken, validateJWT } from "../auth";
 import { respondWithJSON } from "./json";
-import { getVideo } from "../db/videos";
+import { getVideo, updateVideo } from "../db/videos";
 import type { ApiConfig } from "../config";
 import type { BunRequest } from "bun";
 import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
@@ -48,38 +48,31 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     console.log("uploading thumbnail for video", videoId, "by user", userID);
 
     const formData = await req.formData();
-    const file = formData.get('thumbnail');
-
-   if (!(file instanceof File)) {
-      throw new BadRequestError("Invalid video");
+    const file = formData.get("thumbnail");
+    if (!(file instanceof File)) {
+    throw new BadRequestError("Thumbnail file missing");
     }
 
     const MAX_UPLOAD_SIZE = 10 << 20;
-
-    if (file.size > MAX_UPLOAD_SIZE){
-        throw new BadRequestError("File size too big");
+    if (file.size > MAX_UPLOAD_SIZE) {
+    throw new BadRequestError("File size too big");
     }
 
-    const type = file.type;
-    console.log("file size", file.size);
-    const buffer = await file.arrayBuffer();
-    console.log("buffer", buffer);
+    const mediaType = file.type;
+    const data = await file.arrayBuffer();
+
     const video = getVideo(cfg.db, videoId);
-    console.log("video", video)
-    // if (video.user_id !== userID){
-    //     throw new UserForbiddenError("You do not own this video");
-    // }
+    if (!video) {
+    throw new NotFoundError("Couldn't find video");
+    }
+    if (video.userID !== userID) {
+    throw new UserForbiddenError("You do not own this video");
+    }
 
-    const thumbnail = { buffer, type};
-    videoThumbnails.set(video.id, thumbnail)
+    videoThumbnails.set(videoId, { data, mediaType });
 
-    const thumbnailUrl = `http://localhost:${cfg.port}/api/thumbnails/${video.id}>`
-    console.log("meta data before", video);
+    video.thumbnailURL = `http://localhost:${cfg.port}/api/thumbnails/${videoId}`;
+    updateVideo(cfg.db, video);
 
-    video.thumbnailURL = thumbnailUrl;
-
-    console.log("meta data after", video);
-
-
-    return respondWithJSON(200, null);
+    return respondWithJSON(200, video);
 }
