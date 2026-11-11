@@ -35,15 +35,11 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     }
 
     const mediaType = file.type;
-    // const path = `/assets/${videoID}.${mediaType}`;
-    const full = path.join(`/assets/${videoId}${cfg.assetsRoot}.${mediaType}`);
-    console.log("path", full);
-
     const data = await file.arrayBuffer();
-
-    const buff = Buffer.from(data).toString("base64");
-
-    const dataURL = `data:${mediaType};base64,${buff}` 
+    // const path = `/assets/${videoID}.${mediaType}`;
+    const full = path.join(`src/assets/${videoId}${cfg.assetsRoot}.${mediaType}`);
+    console.log("path", full);
+    await Bun.write(full, data)
 
     const video = getVideo(cfg.db, videoId);
     if (!video) {
@@ -53,7 +49,7 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     throw new UserForbiddenError("You do not own this video");
     }
 
-    video.thumbnailURL = dataURL;
+    video.thumbnailURL = `http://localhost:${cfg.port}/assets/${videoId}.${mediaType}`;
     updateVideo(cfg.db, video);
 
     return respondWithJSON(200, video);
