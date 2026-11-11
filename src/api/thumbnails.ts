@@ -1,6 +1,7 @@
 import { getBearerToken, validateJWT } from "../auth";
 import { respondWithJSON } from "./json";
 import { getVideo, updateVideo } from "../db/videos";
+import { Buffer } from 'node:buffer';
 import type { ApiConfig } from "../config";
 import type { BunRequest } from "bun";
 import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
@@ -60,6 +61,12 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
 
     const mediaType = file.type;
     const data = await file.arrayBuffer();
+
+    const buff = Buffer.from(data).toString("base64");
+
+    const dataURL = `data:${mediaType};base64,${buff};` 
+
+    console.log("here is dataURL", dataURL);
 
     const video = getVideo(cfg.db, videoId);
     if (!video) {
