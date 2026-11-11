@@ -24,8 +24,7 @@ export async function handlerGetThumbnail(cfg: ApiConfig, req: BunRequest) {
     throw new NotFoundError("Couldn't find video");
   }
 
-  const thumbnail = videoThumbnails.get(videoId);
-  if (!thumbnail) {
+  if (!video.thumbnailURL) {
     throw new NotFoundError("Thumbnail not found");
   }
 
@@ -66,8 +65,6 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
 
     const dataURL = `data:${mediaType};base64,${buff};` 
 
-    console.log("here is dataURL", dataURL);
-
     const video = getVideo(cfg.db, videoId);
     if (!video) {
     throw new NotFoundError("Couldn't find video");
@@ -75,8 +72,6 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     if (video.userID !== userID) {
     throw new UserForbiddenError("You do not own this video");
     }
-
-    videoThumbnails.set(videoId, { data, mediaType });
 
     video.thumbnailURL = dataURL;
     updateVideo(cfg.db, video);
