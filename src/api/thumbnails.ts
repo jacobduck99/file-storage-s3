@@ -21,7 +21,13 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     const token = getBearerToken(req.headers);
     const userID = validateJWT(token, cfg.jwtSecret);
 
-    console.log("uploading thumbnail for video", videoId, "by user", userID);
+    const video = getVideo(cfg.db, videoId);
+    if (!video) {
+    throw new NotFoundError("Couldn't find video");
+    }
+    if (video.userID !== userID) {
+    throw new UserForbiddenError("You do not own this video");
+    }
 
     const formData = await req.formData();
     const file = formData.get("thumbnail");
@@ -35,22 +41,16 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     }
 
     const mediaType = file.type;
-    if (mediaType !== 'image/jpeg'|| mediaType !== 'image/png'){
-        throw new BadRequestError("File has to be image type jpeg or png");
-    }
-    const data = await file.arrayBuffer();
-    const full = path.join(`src/assets/${videoId}${cfg.assetsRoot}.${mediaType}`);
-    await Bun.write(full, data)
-
-    const video = getVideo(cfg.db, videoId);
-    if (!video) {
-    throw new NotFoundError("Couldn't find video");
-    }
-    if (video.userID !== userID) {
-    throw new UserForbiddenError("You do not own this video");
+    if (mediaType !== "image/jpeg" && mediaType !== "image/png") {
+    throw new BadRequestError("File has to be image type jpeg or png");
     }
 
-    video.thumbnailURL = `http://localhost:${cfg.port}/assets/${videoId}.${mediaType}`;
+    const ext = mediaType.split("/")[1];
+    const fileName = `${videoId}.${ext}`;
+    const filePath = path.join(cfg.assetsRoot, fileName);
+    await Bun.write(filePath, await file.arrayBuffer());
+
+    video.thumbnailURL = `http://localhost:${cfg.port}/assets/${fileName}`;
     updateVideo(cfg.db, video);
 
     return respondWithJSON(200, video);
