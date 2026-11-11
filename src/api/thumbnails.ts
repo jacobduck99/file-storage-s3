@@ -35,10 +35,11 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     }
 
     const mediaType = file.type;
+    if (mediaType !== 'image/jpeg'|| mediaType !== 'image/png'){
+        throw new BadRequestError("File has to be image type jpeg or png");
+    }
     const data = await file.arrayBuffer();
-    // const path = `/assets/${videoID}.${mediaType}`;
     const full = path.join(`src/assets/${videoId}${cfg.assetsRoot}.${mediaType}`);
-    console.log("path", full);
     await Bun.write(full, data)
 
     const video = getVideo(cfg.db, videoId);
