@@ -2,6 +2,7 @@ import { getBearerToken, validateJWT } from "../auth";
 import { respondWithJSON } from "./json";
 import { getVideo, updateVideo } from "../db/videos";
 import { Buffer } from 'node:buffer';
+import path from 'node:path';
 import type { ApiConfig } from "../config";
 import type { BunRequest } from "bun";
 import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
@@ -34,6 +35,10 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     }
 
     const mediaType = file.type;
+    // const path = `/assets/${videoID}.${mediaType}`;
+    const full = path.join(`/assets/${videoId}${cfg.assetsRoot}.${mediaType}`);
+    console.log("path", full);
+
     const data = await file.arrayBuffer();
 
     const buff = Buffer.from(data).toString("base64");
