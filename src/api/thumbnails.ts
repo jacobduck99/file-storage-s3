@@ -3,7 +3,7 @@ import { respondWithJSON } from "./json";
 import { getVideo } from "../db/videos";
 import type { ApiConfig } from "../config";
 import type { BunRequest } from "bun";
-import { BadRequestError, NotFoundError } from "./errors";
+import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
 
 type Thumbnail = {
   data: ArrayBuffer;
@@ -64,7 +64,21 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     console.log("file size", file.size);
     const buffer = await file.arrayBuffer();
     console.log("buffer", buffer);
+    const video = getVideo(cfg.db, videoId);
+    console.log("video", video)
+    // if (video.user_id !== userID){
+    //     throw new UserForbiddenError("You do not own this video");
+    // }
 
+    const thumbnail = { buffer, type};
+    videoThumbnails.set(video.id, thumbnail)
+
+    const thumbnailUrl = `http://localhost:${cfg.port}/api/thumbnails/${video.id}>`
+    console.log("meta data before", video);
+
+    video.thumbnailURL = thumbnailUrl;
+
+    console.log("meta data after", video);
 
 
     return respondWithJSON(200, null);
