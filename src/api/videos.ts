@@ -5,7 +5,7 @@ import { getBearerToken, validateJWT } from "../auth";
 import { type ApiConfig } from "../config";
 import type { BunRequest } from "bun";
 import { s3, write, S3Client } from "bun";
-
+import { getVideoAspectRatio } from "./video-aspect-ratio.js";
 export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const MAX_UPLOAD_SIZE = 1 << 30; 
     const { videoId } = req.params as { videoId?: string };
@@ -32,6 +32,7 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const path = `./tmp/${videoId}.mp4`;
     await Bun.write(path, file);
     const fileContents = Bun.file(path);
+    await getVideoAspectRatio(fileContents);
     const s3file = cfg.s3Client.file(`${videoId}.mp4`);
     await s3file.write(fileContents, { type: mediaType });
 
