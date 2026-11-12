@@ -1,8 +1,10 @@
 import { respondWithJSON } from "./json";
 import { BadRequestError, UserForbiddenError } from "./errors";
-
+import { getVideo, updateVideo } from "../db/videos";
+import { getBearerToken, validateJWT } from "../auth";
 import { type ApiConfig } from "../config";
 import type { BunRequest } from "bun";
+import { s3, write, S3Client } from "bun";
 
 export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const MAX_UPLOAD_SIZE = 1 << 30; 
@@ -12,16 +14,31 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const userID = validateJWT(token, cfg.jwtSecret);
 
     const video = getVideo(cfg.db, videoId); 
-    if (userId !== video.userID){
+    if (userID !== video.userID){
         throw new UserForbiddenError("You do not own this video");
     }
 
     const formData = await req.formData();
     const file = formData.get("video");
 
-    if (file > MAX_UPLOAD_SIZE){
-        throw BadRequest("file size too large");
+    if (file.size > MAX_UPLOAD_SIZE){
+        throw new BadRequestError("file size too large");
     }
 
+    const mediaType = file.type;
+    if (mediaType !== "video/mp4"){
+        throw new BadRequestError("video not mp4");
+    }
+    const path = `./tmp/${videoId}.mp4`;
+    await Bun.write(path, file);
+    const fileContents = Bun.file(path);
+    const s3file = cfg.s3Client.file(`${videoId}.mp4`);
+    await s3file.write(fileContents, { type: mediaType });
+
+    const s3URL = `https://${cfg.s3Bucket}.s3.${cfg.s3Region}.amazonaws.com/${videoId}.mp4`;
+    await fileContents.delete();
+    
+    video.videoURL = s3URL;
+    updateVideo(cfg.db, video);
     return respondWithJSON(200, null);
 }
