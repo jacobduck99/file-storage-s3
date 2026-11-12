@@ -1,5 +1,5 @@
 
-export async function getVideoAspectRatio(filepath: string): Promise {
+export async function getVideoAspectRatio(filepath: string): Promise<string> {
     const proc = Bun.spawn(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "json", filepath],{
         stdout: "pipe",
         stderr: "pipe",
@@ -18,6 +18,10 @@ export async function getVideoAspectRatio(filepath: string): Promise {
     const width = parsed.streams[0].width;
     const height = parsed.streams[0].height;
 
-    console.log("stdoutText", stdoutText);
-    console.log("stderrText", stderrText);
+    const ratio = width / height;
+    const tolerance = 0.01;
+
+    if (Math.abs(ratio - 16 / 9) < tolerance) return "landscape";
+    if (Math.abs(ratio - 9 / 16) < tolerance) return "portrait";
+    return "other";
 }
