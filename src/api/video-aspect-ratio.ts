@@ -8,6 +8,16 @@ export async function getVideoAspectRatio(filepath: string): Promise {
     const stdoutText = await new Response(proc.stdout).text();
     const stderrText = await new Response(proc.stderr).text();
 
+    const exitCode = await proc.exited;
+
+    if (exitCode !== 0){
+        throw new Error(`ffprobe error: ${stderrText}`);
+    }
+
+    const parsed = JSON.parse(stdoutText);
+    const width = parsed.streams[0].width;
+    const height = parsed.streams[0].height;
+
     console.log("stdoutText", stdoutText);
     console.log("stderrText", stderrText);
 }

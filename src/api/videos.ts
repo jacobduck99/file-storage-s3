@@ -32,7 +32,7 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const path = `./tmp/${videoId}.mp4`;
     await Bun.write(path, file);
     const fileContents = Bun.file(path);
-    await getVideoAspectRatio(fileContents);
+    const pipe = await getVideoAspectRatio(path);
     const s3file = cfg.s3Client.file(`${videoId}.mp4`);
     await s3file.write(fileContents, { type: mediaType });
 
