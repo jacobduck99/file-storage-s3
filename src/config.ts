@@ -1,16 +1,18 @@
 import { newDatabase } from "./db/db";
 import type { Database } from "bun:sqlite";
+import { s3, S3Client } from "bun";
 
 export type ApiConfig = {
-  db: Database;
-  jwtSecret: string;
-  platform: string;
-  filepathRoot: string;
-  assetsRoot: string;
-  s3Bucket: string;
-  s3Region: string;
-  s3CfDistribution: string;
-  port: string;
+    db: Database;
+    jwtSecret: string;
+    platform: string;
+    filepathRoot: string;
+    assetsRoot: string;
+    s3Bucket: string;
+    s3Region: string;
+    s3CfDistribution: string;
+    s3Client: string;
+    port: string;
 };
 
 const pathToDB = envOrThrow("DB_PATH");
@@ -26,15 +28,16 @@ const port = envOrThrow("PORT");
 const db = newDatabase(pathToDB);
 
 export const cfg: ApiConfig = {
-  db: db,
-  jwtSecret: jwtSecret,
-  platform: platform,
-  filepathRoot: filepathRoot,
-  assetsRoot: assetsRoot,
-  s3Bucket: s3Bucket,
-  s3Region: s3Region,
-  s3CfDistribution: s3CfDistribution,
-  port: port,
+    db: db,
+    jwtSecret: jwtSecret,
+    platform: platform,
+    filepathRoot: filepathRoot,
+    assetsRoot: assetsRoot,
+    s3Bucket: s3Bucket,
+    s3Region: s3Region,
+    s3CfDistribution: s3CfDistribution,
+    s3client: s3,
+    port: port,
 };
 
 function envOrThrow(key: string) {
