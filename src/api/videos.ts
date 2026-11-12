@@ -32,8 +32,8 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const path = `./tmp/${videoId}.mp4`;
     await Bun.write(path, file);
     const fileContents = Bun.file(path);
-    const pipe = await getVideoAspectRatio(path);
-    const s3file = cfg.s3Client.file(`${videoId}.mp4`);
+    const aspectRatio = await getVideoAspectRatio(path);
+    const s3file = cfg.s3Client.file(`${aspectRatio}/${videoId}.mp4`);
     await s3file.write(fileContents, { type: mediaType });
 
     const s3URL = `https://${cfg.s3Bucket}.s3.${cfg.s3Region}.amazonaws.com/${videoId}.mp4`;
