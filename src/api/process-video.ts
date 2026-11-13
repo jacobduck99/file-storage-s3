@@ -12,8 +12,7 @@ export async function processVideoForFastStart(inputFilePath: string): Promise<s
         throw new Error(`ffprobe error: ${stderrText}`);
     }
 
-    const stdoutText = await new Response(proc.stdout).text();
-    
+    const stdoutText = await new Response(proc.stdout).text(); 
     return finalPath;
 }
 

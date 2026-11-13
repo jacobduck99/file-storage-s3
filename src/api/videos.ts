@@ -31,17 +31,21 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     if (mediaType !== "video/mp4"){
         throw new BadRequestError("video not mp4");
     }
+
     const path = `./tmp/${videoId}.mp4`;
     await Bun.write(path, file);
+
     const fileContents = Bun.file(path);
     const aspectRatio = await getVideoAspectRatio(path);
     const processedVideo = await processVideoForFastStart(path);
+
     const s3file = cfg.s3Client.file(`${aspectRatio}/${videoId}.mp4`);
     const processedVideoContents = Bun.file(processedVideo);
     await s3file.write(processedVideoContents, { type: mediaType });
 
     const s3URL = `https://${cfg.s3Bucket}.s3.${cfg.s3Region}.amazonaws.com/${aspectRatio}/${videoId}.mp4`;
     await fileContents.delete();
+    await processedVideoContents.delete();
     
     video.videoURL = s3URL;
     updateVideo(cfg.db, video);
