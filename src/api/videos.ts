@@ -6,6 +6,8 @@ import { type ApiConfig } from "../config";
 import type { BunRequest } from "bun";
 import { s3, write, S3Client } from "bun";
 import { getVideoAspectRatio } from "./video-aspect-ratio.js";
+import { processVideoForStart } from "./process-video.js";
+
 export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const MAX_UPLOAD_SIZE = 1 << 30; 
     const { videoId } = req.params as { videoId?: string };
@@ -33,6 +35,7 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     await Bun.write(path, file);
     const fileContents = Bun.file(path);
     const aspectRatio = await getVideoAspectRatio(path);
+    const processVideo = await processVideoForStart(path);
     const s3file = cfg.s3Client.file(`${aspectRatio}/${videoId}.mp4`);
     await s3file.write(fileContents, { type: mediaType });
 
