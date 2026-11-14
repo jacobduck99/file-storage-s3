@@ -57,8 +57,8 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     await fileContents.delete();
     await processedVideoContents.delete();
 
-    video.videoURL = key;
+    video.videoURL = `${cfg.s3CfDistribution}${key}`;
+    console.log("video url", video.videoURL);
     updateVideo(cfg.db, video);
-    const presigned = dbVideoToSignedVideo(cfg, video);
-    return respondWithJSON(200, presigned);
+    return respondWithJSON(200, video);
 }

@@ -4,7 +4,6 @@ import { createVideo, deleteVideo, getVideo, getVideos } from "../db/videos";
 import { respondWithJSON } from "./json";
 import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
 import type { BunRequest } from "bun";
-import { dbVideoToSignedVideo } from "./videos.js";
 
 export async function handlerVideoMetaCreate(cfg: ApiConfig, req: Request) {
     const token = getBearerToken(req.headers);
@@ -63,9 +62,7 @@ export async function handlerVideoGet(cfg: ApiConfig, req: BunRequest) {
         throw new UserForbiddenError("Not authorized to access this video");
     }
 
-    const presigned = dbVideoToSignedVideo(cfg, video);
-
-    return respondWithJSON(200, presigned);
+    return respondWithJSON(200, video);
 }
 
 export async function handlerVideosRetrieve(cfg: ApiConfig, req: Request) {
@@ -73,6 +70,5 @@ export async function handlerVideosRetrieve(cfg: ApiConfig, req: Request) {
     const userID = validateJWT(token, cfg.jwtSecret);
 
     const videos = getVideos(cfg.db, userID);
-    const presigned = videos.map((v) => dbVideoToSignedVideo(cfg, v));
-    return respondWithJSON(200, presigned);
+    return respondWithJSON(200, videos);
 }
