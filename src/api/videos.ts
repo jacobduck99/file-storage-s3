@@ -8,7 +8,6 @@ import type { Video } from "../db/videos.js";
 import { s3, write, S3Client } from "bun";
 import { getVideoAspectRatio } from "./video-aspect-ratio.js";
 import { processVideoForFastStart } from "./process-video.js";
-import { generatePresignedURL } from "./s3.js";
 
 export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const MAX_UPLOAD_SIZE = 1 << 30;
@@ -62,15 +61,4 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     updateVideo(cfg.db, video);
     const presigned = dbVideoToSignedVideo(cfg, video);
     return respondWithJSON(200, presigned);
-}
-
-export function dbVideoToSignedVideo(cfg: ApiConfig, video: Video): Video {
-    const videoURL = video.videoURL;
-    if (!videoURL) {
-        return video;
-    }
-
-    const presignedURL = generatePresignedURL(cfg, videoURL, 3600);
-    video.videoURL = presignedURL;
-    return video;
 }
