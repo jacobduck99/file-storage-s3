@@ -73,6 +73,6 @@ export async function handlerVideosRetrieve(cfg: ApiConfig, req: Request) {
     const userID = validateJWT(token, cfg.jwtSecret);
 
     const videos = getVideos(cfg.db, userID);
-    const presigned = dbVideoToSignedVideo(cfg, videos);
+    const presigned = videos.map((v) => dbVideoToSignedVideo(cfg, v));
     return respondWithJSON(200, presigned);
 }
