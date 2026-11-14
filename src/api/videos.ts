@@ -67,7 +67,7 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
 export function dbVideoToSignedVideo(cfg: ApiConfig, video: Video): Video {
     const videoURL = video.videoURL;
     if (!videoURL) {
-        throw new BadRequestError("Video file missing");
+        return video;
     }
 
     const presignedURL = generatePresignedURL(cfg, videoURL, 3600);
