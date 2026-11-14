@@ -56,6 +56,13 @@ export async function handlerVideoGet(cfg: ApiConfig, req: BunRequest) {
         throw new NotFoundError("Couldn't find video");
     }
 
+    const token = getBearerToken(req.headers);
+    const userID = validateJWT(token, cfg.jwtSecret);
+
+    if (userID !== video.userID) {
+        throw new UserForbiddenError("Not authorized to access this video");
+    }
+
     const presigned = dbVideoToSignedVideo(cfg, video);
 
     return respondWithJSON(200, presigned);
@@ -66,6 +73,6 @@ export async function handlerVideosRetrieve(cfg: ApiConfig, req: Request) {
     const userID = validateJWT(token, cfg.jwtSecret);
 
     const videos = getVideos(cfg.db, userID);
-    const presigned = dbVideoToSignedVideo(cfg, video);
+    const presigned = dbVideoToSignedVideo(cfg, videos);
     return respondWithJSON(200, presigned);
 }
