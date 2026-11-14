@@ -40,7 +40,13 @@ export function makeJWT(userID: string, secret: string, expiresIn: number) {
 }
 
 export function validateJWT(tokenString: string, tokenSecret: string) {
-  const decoded = jwt.verify(tokenString, tokenSecret) as jwt.JwtPayload;
+  let decoded: jwt.JwtPayload;
+  try {
+    decoded = jwt.verify(tokenString, tokenSecret) as jwt.JwtPayload;
+  } catch {
+    // Malformed, expired, or wrongly-signed tokens should be a 401, not a 500
+    throw new UserNotAuthenticatedError("Invalid token");
+  }
 
   if (decoded.iss !== ACCESS_TOKEN_ISSUER) {
     throw new UserNotAuthenticatedError("Invalid issuer");
