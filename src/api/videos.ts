@@ -60,7 +60,8 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
 
     video.videoURL = key;
     updateVideo(cfg.db, video);
-    return respondWithJSON(200, null);
+    const presigned = dbVideoToSignedVideo(cfg, video);
+    return respondWithJSON(200, presigned);
 }
 
 export function dbVideoToSignedVideo(cfg: ApiConfig, video: Video): Video {
