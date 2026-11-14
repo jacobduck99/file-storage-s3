@@ -58,7 +58,6 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     await processedVideoContents.delete();
 
     video.videoURL = `${cfg.s3CfDistribution}${key}`;
-    console.log("video url", video.videoURL);
     updateVideo(cfg.db, video);
     return respondWithJSON(200, video);
 }
