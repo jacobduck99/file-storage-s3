@@ -1,5 +1,5 @@
 import { respondWithJSON } from "./json";
-import { BadRequestError, UserForbiddenError } from "./errors";
+import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
 import { getVideo, updateVideo } from "../db/videos";
 import { getBearerToken, validateJWT } from "../auth";
 import { type ApiConfig } from "../config";
@@ -11,17 +11,26 @@ import { processVideoForFastStart } from "./process-video.js";
 export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     const MAX_UPLOAD_SIZE = 1 << 30; 
     const { videoId } = req.params as { videoId?: string };
+    if (!videoId) {
+        throw new BadRequestError("Invalid video ID");
+    }
 
     const token = getBearerToken(req.headers);
     const userID = validateJWT(token, cfg.jwtSecret);
 
-    const video = getVideo(cfg.db, videoId); 
+    const video = getVideo(cfg.db, videoId);
+    if (!video) {
+        throw new NotFoundError("Couldn't find video");
+    }
     if (userID !== video.userID){
         throw new UserForbiddenError("You do not own this video");
     }
 
     const formData = await req.formData();
     const file = formData.get("video");
+    if (!(file instanceof File)) {
+        throw new BadRequestError("Video file missing");
+    }
 
     if (file.size > MAX_UPLOAD_SIZE){
         throw new BadRequestError("file size too large");

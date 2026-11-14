@@ -9,7 +9,8 @@ export async function processVideoForFastStart(inputFilePath: string): Promise<s
     const exitCode = await proc.exited;
 
     if (exitCode !== 0){
-        throw new Error(`ffprobe error: ${stderrText}`);
+        const stderrText = await new Response(proc.stderr).text();
+        throw new Error(`ffmpeg error: ${stderrText}`);
     }
 
     return finalPath;
