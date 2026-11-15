@@ -43,19 +43,21 @@ export async function handlerUploadVideo(cfg: ApiConfig, req: BunRequest) {
     }
 
     const path = `./tmp/${videoId}.mp4`;
-    await Bun.write(path, file);
+    const processedPath = `${path}.final`;
+    let key: string;
 
-    const fileContents = Bun.file(path);
-    const aspectRatio = await getVideoAspectRatio(path);
-    const processedVideo = await processVideoForFastStart(path);
+    try {
+        await Bun.write(path, file);
+        const aspectRatio = await getVideoAspectRatio(path);
+        await processVideoForFastStart(path, processedPath);
 
-    const key = `${aspectRatio}/${videoId}.mp4`;
-    const s3file = cfg.s3Client.file(key);
-    const processedVideoContents = Bun.file(processedVideo);
-    await s3file.write(processedVideoContents, { type: mediaType });
-
-    await fileContents.delete();
-    await processedVideoContents.delete();
+        key = `${aspectRatio}/${videoId}.mp4`;
+        await cfg.s3Client.file(key).write(Bun.file(processedPath), { type: mediaType });
+    } finally {
+        // always remove temp files, even if ffprobe/ffmpeg/S3 failed
+        await Bun.file(path).delete().catch(() => {});
+        await Bun.file(processedPath).delete().catch(() => {});
+    }
 
     video.videoURL = `${cfg.s3CfDistribution}${key}`;
     updateVideo(cfg.db, video);

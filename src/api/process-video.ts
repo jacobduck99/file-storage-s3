@@ -1,6 +1,8 @@
 
-export async function processVideoForFastStart(inputFilePath: string): Promise<string>{
-    const finalPath = `${inputFilePath}.final`;
+export async function processVideoForFastStart(
+    inputFilePath: string,
+    finalPath = `${inputFilePath}.final`,
+): Promise<string>{
 
     const proc = Bun.spawn(["ffmpeg", "-i", inputFilePath, "-movflags", "faststart", "-map_metadata", "0", "-codec", "copy", "-f", "mp4", finalPath], {
         stderr: "pipe",
